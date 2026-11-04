@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Big River Document Catalog</title>
+<style>
+:root{--bg:#f6f5f2;--panel:#fff;--ink:#1d2327;--muted:#5f6b73;--line:#e2e0da;--accent:#1f5f8b;--accent-soft:#e6eff6;--chip:#efede8;--warn:#9a5b00}
+@media (prefers-color-scheme:dark){:root{--bg:#15181b;--panel:#1d2125;--ink:#e6e8ea;--muted:#9aa5ad;--line:#30363c;--accent:#7cb4dc;--accent-soft:#1f3242;--chip:#272c31;--warn:#e0a54a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+header{padding:20px 16px 8px;max-width:1400px;margin:0 auto}
+h1{font-size:22px;margin:0 0 2px}
+.sub{color:var(--muted);font-size:13px}
+main{max-width:1400px;margin:0 auto;padding:0 16px 40px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-width:110px}
+.stat b{display:block;font-size:18px}
+.stat span{color:var(--muted);font-size:12px}
+.controls{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr)) auto;gap:8px;border-bottom:1px solid var(--line)}
+@media (max-width:900px){.controls{grid-template-columns:1fr 1fr}.controls input[type=search]{grid-column:1/-1}}
+input,select,button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0;width:100%}
+button{cursor:pointer;width:auto;white-space:nowrap}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0;color:var(--muted);flex-wrap:wrap}
+.tablewrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap;background:var(--panel);position:sticky;top:0}
+th.sorted{color:var(--ink)}
+tr.doc:hover td{background:var(--accent-soft)}
+tr.doc{cursor:pointer}
+td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;background:var(--chip);border-radius:10px;padding:1px 8px;font-size:12px;margin:1px 2px 1px 0;white-space:nowrap}
+.cat{font-size:12px;color:var(--muted)}
+.parties{max-width:420px}
+.parties .arrow{color:var(--muted)}
+tr.detail td{background:var(--bg);font-size:13px}
+.detail dl{display:grid;grid-template-columns:140px 1fr;gap:4px 12px;margin:4px 0}
+.detail dt{color:var(--muted)}
+.detail dd{margin:0;word-break:break-word}
+a{color:var(--accent)}
+.more{text-align:center;padding:12px}
+.note{color:var(--warn);font-size:12px}
+#lock{max-width:380px;margin:12vh auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:24px}
+#lock h1{margin-bottom:6px}
+#lock form{display:flex;gap:8px;margin-top:14px}
+#err{color:#c0392b;font-size:13px;min-height:18px;margin-top:8px}
+footer{max-width:1400px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div id="lock" hidden>
+  <h1>Big River Document Catalog</h1>
+  <div class="sub">Vanguard Real Estate Solutions. Enter the team password to open the catalog.</div>
+  <form id="pw"><input id="pass" type="password" autocomplete="current-password" placeholder="Password" autofocus><button class="primary">Open</button></form>
+  <div id="err"></div>
+</div>
+<div id="app" hidden>
+<header>
+  <h1>Big River Document Catalog</h1>
+  <div class="sub">FAT NRG-2056, Des Moines County, Iowa. Every pulled and filed instrument, one row each. Built <span id="built"></span>.</div>
+</header>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="controls">
+    <input type="search" id="q" placeholder="Search grantor, grantee, book-page, legal, file name...">
+    <select id="f-file"><option value="">All files</option></select>
+    <select id="f-cat"><option value="">All types</option></select>
+    <select id="f-src"><option value="">All sources</option></select>
+    <select id="f-era"><option value="">All years</option></select>
+    <button id="csv">Download CSV</button>
+  </div>
+  <div class="meta"><span id="count"></span><span>Click a row for details and SharePoint links. Links need your Vanguard Microsoft 365 sign-in.</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr>
+      <th data-k="0">Date</th><th data-k="2">Type</th><th data-k="3">Book-page / instrument</th><th data-k="4">Grantor &rarr; grantee</th><th data-k="8">File</th><th data-k="9">Parcels</th><th data-k="7">Source</th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <div class="more"><button id="more" hidden>Show more</button></div>
+</main>
+<footer id="foot"></footer>
+</div>
+<script>
+const PAYLOAD = __PAYLOAD__;
+const enc0 = s => s.split('/').map(encodeURIComponent).join('/');
+const enc = s => s.split('/').map(encodeURIComponent).join('/');
+const SP = "https://vresolutions.sharepoint.com" + enc0("/sites/VanguardCorporate/Documents/Projects/FAT - First American Title/FAT-IA-Big River-NRG-2056/Shared/");
+let D, FILES, PMAP = {}, view = [], shown = 0, sortK = 0, sortDir = 1, open = new Set();
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function gunzip(bytes){
+  const ds = new DecompressionStream('gzip');
+  const out = new Response(new Blob([bytes]).stream().pipeThrough(ds));
+  return await out.text();
+}
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function decrypt(pass){
+  const p = PAYLOAD;
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const k = await crypto.subtle.deriveKey({name:'PBKDF2', salt:b64(p.salt), iterations:p.iter, hash:'SHA-256'}, key, {name:'AES-GCM', length:256}, false, ['decrypt']);
+  const plain = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64(p.iv)}, k, b64(p.data));
+  return JSON.parse(await gunzip(new Uint8Array(plain)));
+}
+async function boot(){
+  if (PAYLOAD.plain) { start(JSON.parse(await gunzip(b64(PAYLOAD.data)))); return; }
+  let saved = null; try { saved = sessionStorage.getItem('brpw'); } catch(e){}
+  if (saved) { try { start(await decrypt(saved)); return; } catch(e){} }
+  $('lock').hidden = false;
+  $('pw').onsubmit = async e => {
+    e.preventDefault(); $('err').textContent = 'Opening...';
+    try { const v = $('pass').value; const data = await decrypt(v); try { sessionStorage.setItem('brpw', v); } catch(e){} $('lock').hidden = true; start(data); }
+    catch(err){ $('err').textContent = 'That password did not work.'; }
+  };
+}
+function fileLabel(n){ return n.replace('2P7MIA',''); }
+function start(data){
+  D = data.docs; FILES = data.files; PMAP = data.pmap;
+  $('app').hidden = false; $('built').textContent = data.built;
+  const opt = (sel, vals, lab) => vals.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = lab ? lab(v) : v; sel.appendChild(o); });
+  opt($('f-file'), Object.keys(FILES).sort(), n => fileLabel(n) + ' ' + FILES[n]);
+  const count = i => { const c = {}; D.forEach(r => c[r[i]] = (c[r[i]]||0)+1); return c; };
+  const cats = count(2), srcs = count(7);
+  opt($('f-cat'), Object.keys(cats).sort((a,b)=>cats[b]-cats[a]), v => v + ' (' + cats[v] + ')');
+  opt($('f-src'), Object.keys(srcs).sort((a,b)=>srcs[b]-srcs[a]), v => v + ' (' + srcs[v] + ')');
+  const eras = [['pre1870','Before 1870'],['1870','1870-1902'],['1903','1903-1967'],['1968','1968-1999'],['2000','2000-present'],['none','No date']];
+  eras.forEach(([v,l]) => { const o=document.createElement('option'); o.value=v; o.textContent=l; $('f-era').appendChild(o); });
+  const parcels = new Set(); D.forEach(r => r[9].split(';').forEach(p => p && parcels.add(p)));
+  const stat = (n,l) => `<div class="stat"><b>${n.toLocaleString()}</b><span>${l}</span></div>`;
+  $('stats').innerHTML = stat(D.length,'instruments') + stat(Object.keys(FILES).length,'files') + stat(parcels.size,'parcels') +
+    stat(cats['Deed']||0,'deeds') + stat((cats['Mortgage']||0)+(cats['Release / satisfaction']||0)+(cats['Mortgage assignment / subordination']||0),'mortgages and releases') +
+    stat(cats['Easement']||0,'easements') + stat(cats['Patent']||0,'patents');
+  $('foot').innerHTML = 'Source: the Big River Document Logs (JONDESK and LT04), which record every PDF filed to the parcel Documents folders. About 70 hand-filed PDFs that were never logged are not listed yet. Index data only; the PDFs stay in SharePoint.';
+  document.querySelectorAll('th').forEach(th => th.onclick = () => { const k = +th.dataset.k; sortDir = (sortK===k) ? -sortDir : 1; sortK = k; apply(); });
+  ['q','f-file','f-cat','f-src','f-era'].forEach(id => $(id).addEventListener('input', apply));
+  $('more').onclick = () => render(shown + 200);
+  $('csv').onclick = csv;
+  try { const h = new URLSearchParams(location.hash.slice(1)); if (h.get('file')) $('f-file').value = '2P7MIA' + h.get('file').padStart(2,'0'); if (h.get('q')) $('q').value = h.get('q'); } catch(e){}
+  apply();
+}
+function eraOf(d){ const y = parseInt(d); if (!y) return 'none'; if (y<1870) return 'pre1870'; if (y<1903) return '1870'; if (y<1968) return '1903'; if (y<2000) return '1968'; return '2000'; }
+function apply(){
+  const terms = $('q').value.toLowerCase().split(/\s+/).filter(Boolean);
+  const f = $('f-file').value, c = $('f-cat').value, s = $('f-src').value, e = $('f-era').value;
+  view = D.filter(r => (!f || r[8].split(';').includes(f)) && (!c || r[2]===c) && (!s || r[7]===s) && (!e || eraOf(r[0])===e) &&
+    (!terms.length || (h => terms.every(t => h.includes(t)))((r[1]+' '+r[3]+' '+r[4]+' '+r[5]+' '+r[6]+' '+r[9]+' '+r[10]).toLowerCase())));
+  view.sort((a,b) => (a[sortK] < b[sortK] ? -1 : a[sortK] > b[sortK] ? 1 : (a[0]<b[0]?-1:1)) * sortDir);
+  document.querySelectorAll('th').forEach(th => th.classList.toggle('sorted', +th.dataset.k===sortK));
+  try { const h = new URLSearchParams(); if (f) h.set('file', fileLabel(f)); if ($('q').value) h.set('q', $('q').value); history.replaceState(null,'','#'+h.toString()); } catch(err){}
+  render(200);
+}
+function pdfLinks(r){
+  return `<a href="${SP + enc('County Records/Des Moines County Information/Imager Documents/' + r[10])}" target="_blank" rel="noopener">Open PDF (Imager Documents copy)</a>`;
+}
+function parcelLinks(r){
+  // parcel -> file folder: rows carry files and parcels; map each parcel to the file folder that holds it
+  const files = r[8].split(';').filter(Boolean);
+  return r[9].split(';').filter(Boolean).map(p => {
+    const fn = (PMAP[p] || files[0]);
+    const href = SP + enc('File Numbers/Des Moines/' + fn + ' ' + FILES[fn] + '/' + p + '/Documents/' + r[10]);
+    return `<a href="${href}" target="_blank" rel="noopener">${p}</a>`;
+  }).join(', ');
+}
+function render(n){
+  shown = Math.min(n, view.length);
+  const html = [];
+  for (let i=0;i<shown;i++){
+    const r = view[i], id = r[10];
+    const ps = r[9].split(';').filter(Boolean);
+    html.push(`<tr class="doc" data-i="${i}"><td class="date">${esc(r[0])}</td><td>${esc(r[2])}<div class="cat">${esc(r[1])}</div></td><td>${esc(r[3])}</td>`+
+      `<td class="parties">${esc(r[4])} <span class="arrow">&rarr;</span> ${esc(r[5])}</td>`+
+      `<td>${r[8].split(';').filter(Boolean).map(f=>`<span class="chip" title="${esc(FILES[f]||'')}">${fileLabel(f)}</span>`).join('')}</td>`+
+      `<td>${ps.length>2 ? esc(ps.slice(0,2).join(', '))+` <span class="cat">+${ps.length-2}</span>` : esc(ps.join(', '))}</td><td>${esc(r[7])}</td></tr>`);
+    if (open.has(id)) html.push(detail(r));
+  }
+  $('rows').innerHTML = html.join('') || '<tr><td colspan="7">No documents match.</td></tr>';
+  $('count').textContent = `${view.length.toLocaleString()} of ${D.length.toLocaleString()} instruments` + (shown<view.length ? `, showing ${shown}` : '');
+  $('more').hidden = shown >= view.length;
+  document.querySelectorAll('tr.doc').forEach(tr => tr.onclick = () => { const r = view[+tr.dataset.i]; open.has(r[10]) ? open.delete(r[10]) : open.add(r[10]); render(shown); });
+}
+function detail(r){
+  const files = r[8].split(';').filter(Boolean).map(f => `${fileLabel(f)} ${esc(FILES[f]||'')}`).join('; ');
+  return `<tr class="detail"><td colspan="7"><dl>
+    <dt>Document</dt><dd>${esc(r[10])}</dd>
+    <dt>Recorded type</dt><dd>${esc(r[1])}</dd>
+    <dt>Legal / notes</dt><dd>${esc(r[6]) || '<span class="cat">none logged</span>'}</dd>
+    <dt>Files</dt><dd>${files}</dd>
+    <dt>PDF in parcel folders</dt><dd>${parcelLinks(r)}</dd>
+    <dt>PDF, all-docs folder</dt><dd>${pdfLinks(r)}</dd>
+    <dt>Logged</dt><dd>${esc(r[11])}</dd>
+  </dl></td></tr>`;
+}
+function csv(){
+  const head = ['Date','Category','Recorded type','Book-page / instrument','Grantor','Grantee','Legal / notes','Source','Files','Parcels','PDF file name','Logged'];
+  const q = v => '"' + String(v).replace(/"/g,'""') + '"';
+  const lines = [head.map(q).join(',')].concat(view.map(r => [r[0],r[2],r[1],r[3],r[4],r[5],r[6],r[7],r[8],r[9],r[10],r[11]].map(q).join(',')));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv'}));
+  a.download = 'Big River document catalog.csv'; a.click();
+}
+boot();
+</script>
+</body>
+</html>
