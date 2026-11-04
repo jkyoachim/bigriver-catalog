@@ -88,7 +88,7 @@ const PAYLOAD = __PAYLOAD__;
 const enc0 = s => s.split('/').map(encodeURIComponent).join('/');
 const enc = s => s.split('/').map(encodeURIComponent).join('/');
 const SP = "https://vresolutions.sharepoint.com" + enc0("/sites/VanguardCorporate/Documents/Projects/FAT - First American Title/FAT-IA-Big River-NRG-2056/Shared/");
-let D, FILES, PMAP = {}, view = [], shown = 0, sortK = 0, sortDir = 1, open = new Set();
+let NIDX = 0, D, FILES, PMAP = {}, view = [], shown = 0, sortK = 0, sortDir = 1, open = new Set();
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -130,10 +130,11 @@ function start(data){
   eras.forEach(([v,l]) => { const o=document.createElement('option'); o.value=v; o.textContent=l; $('f-era').appendChild(o); });
   const parcels = new Set(); D.forEach(r => r[9].split(';').forEach(p => p && parcels.add(p)));
   const stat = (n,l) => `<div class="stat"><b>${n.toLocaleString()}</b><span>${l}</span></div>`;
-  $('stats').innerHTML = stat(D.length,'instruments') + stat(Object.keys(FILES).length,'files') + stat(parcels.size,'parcels') +
+  NIDX = cats['Index page']||0;
+  $('stats').innerHTML = stat(D.length-NIDX,'instruments') + (NIDX ? stat(NIDX,'index pages') : '') + stat(Object.keys(FILES).length,'files') + stat(parcels.size,'parcels') +
     stat(cats['Deed']||0,'deeds') + stat((cats['Mortgage']||0)+(cats['Release / satisfaction']||0)+(cats['Mortgage assignment / subordination']||0),'mortgages and releases') +
     stat(cats['Easement']||0,'easements') + stat(cats['Patent']||0,'patents');
-  $('foot').innerHTML = 'Source: the Big River Document Logs (JONDESK and LT04), which record every PDF filed to the parcel Documents folders. About 70 hand-filed PDFs that were never logged are not listed yet. Index data only; the PDFs stay in SharePoint.';
+  $('foot').innerHTML = 'Source: the Big River Document Logs (JONDESK and LT04), which record every PDF filed to the parcel Documents folders. About 70 hand-filed PDFs that were never logged are not listed yet. Index pages (ArcaSearch grantor/grantee index book pages) are listed under type "Index page" and are not counted as instruments. Index data only; the PDFs stay in SharePoint.';
   document.querySelectorAll('th').forEach(th => th.onclick = () => { const k = +th.dataset.k; sortDir = (sortK===k) ? -sortDir : 1; sortK = k; apply(); });
   ['q','f-file','f-cat','f-src','f-era'].forEach(id => $(id).addEventListener('input', apply));
   $('more').onclick = () => render(shown + 200);
@@ -153,6 +154,7 @@ function apply(){
   render(200);
 }
 function pdfLinks(r){
+  if (r[2]==='Index page') return '<span class="cat">Index pages are filed in the parcel folders only</span>';
   return `<a href="${SP + enc('County Records/Des Moines County Information/Imager Documents/' + r[10])}" target="_blank" rel="noopener">Open PDF (Imager Documents copy)</a>`;
 }
 function parcelLinks(r){
@@ -177,7 +179,7 @@ function render(n){
     if (open.has(id)) html.push(detail(r));
   }
   $('rows').innerHTML = html.join('') || '<tr><td colspan="7">No documents match.</td></tr>';
-  $('count').textContent = `${view.length.toLocaleString()} of ${D.length.toLocaleString()} instruments` + (shown<view.length ? `, showing ${shown}` : '');
+  $('count').textContent = `${view.length.toLocaleString()} of ${D.length.toLocaleString()} records` + (NIDX ? ` (${(D.length-NIDX).toLocaleString()} instruments, ${NIDX.toLocaleString()} index pages)` : '') + (shown<view.length ? `, showing ${shown}` : '');
   $('more').hidden = shown >= view.length;
   document.querySelectorAll('tr.doc').forEach(tr => tr.onclick = () => { const r = view[+tr.dataset.i]; open.has(r[10]) ? open.delete(r[10]) : open.add(r[10]); render(shown); });
 }

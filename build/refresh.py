@@ -37,6 +37,7 @@ def cat(t):
     if re.search(r'WARRANT|^WD|^WAR|^WTY|QUIT|^QC|DEED|^SHF|^TRD|^GD\b|^TAX\b|SHERIFF|^REF|REFEREE|^EXR|EXECUT|^ADM|^GDN|GUARD|TAX DEED|TREASURER|CONVEY', u): return 'Deed'
     return 'Other'
 def src(s):
+    if 'arcasearch' in s.lower(): return 'ArcaSearch index page'
     if s.startswith('ILR'): return 'Iowa Land Records'
     if 'Family' in s: return 'FamilySearch'
     if 'BLM' in s: return 'BLM GLO'
@@ -46,7 +47,8 @@ out = []; unm = set()
 for x in by.values():
     ps = [p for p in x['parcels'].split(';') if p]
     fs = sorted({pmap[p] for p in ps if p in pmap}); unm |= {p for p in ps if p not in pmap}
-    out.append([x['recorded'], x['doc_type'], cat(x['doc_type']), x['book_page_or_inst'], x['grantor'], x['grantee'],
+    idx = 'arcasearch' in x['source'].lower() or x['file_name'].startswith('INDEX - ')
+    out.append([x['recorded'], x['doc_type'], 'Index page' if idx else cat(x['doc_type']), x['book_page_or_inst'], x['grantor'], x['grantee'],
                 x['legal_summary'].replace('System.Object[]', ''), src(x['source']), ';'.join(fs), ';'.join(ps), x['file_name'], x['logged']])
 out.sort(key=lambda r: (r[0], r[10]))
 print('instruments', len(out), 'parcels not mapped to a file:', sorted(unm))
