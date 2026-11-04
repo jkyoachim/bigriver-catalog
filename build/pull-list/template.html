@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Big River pull list</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: a shelf walk. One card per transfer page or deed book, rows in the order the imager's sheet lists them. */
+:root{
+  --paper:#F7F7F3; --ink:#17212B; --ink-2:#4A5560; --ink-3:#6E7983; --rule:#D9DCD6;
+  --card:#FFFFFF; --ledger:#1F5A45; --ledger-ink:#FFFFFF; --gold:#E7C65B;
+  --slate:#E4E7EA; --ok:#2E7D4F; --warn:#B4532A; --office:#5B7FA6;
+  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#15191D; --ink:#EDEFF1; --ink-2:#B9C0C7; --ink-3:#8F99A3; --rule:#2C333A;
+  --card:#1E2429; --ledger:#2C7A5E; --ledger-ink:#FFFFFF; --gold:#C9A83E; --slate:#2A3137; --ok:#3C9A63; --warn:#D06B3F; --office:#7FA3CC; color-scheme:dark;
+}}
+:root[data-theme="dark"]{ --paper:#15191D; --ink:#EDEFF1; --ink-2:#B9C0C7; --ink-3:#8F99A3; --rule:#2C333A; --card:#1E2429; --ledger:#2C7A5E; --ledger-ink:#FFFFFF; --gold:#C9A83E; --slate:#2A3137; --ok:#3C9A63; --warn:#D06B3F; --office:#7FA3CC; color-scheme:dark; }
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 170px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.4 var(--sans);font-variant-numeric:tabular-nums}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--ledger)}
+.wrap{max-width:760px;margin:0 auto}
+.masthead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 16px 6px}
+.masthead h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em;line-height:1.15;text-wrap:balance}
+.masthead h1 small{display:block;font-size:13px;font-weight:500;color:var(--ink-2);margin-top:3px}
+.sums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:4px 16px 8px}
+.sums div{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:8px;font-size:11px;color:var(--ink-2);line-height:1.2}
+.sums div b{display:block;font-size:18px;color:var(--ink);font-weight:700;margin-bottom:2px}
+.who{padding:6px 16px 10px}
+.who h2{margin:0 0 6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.whochips{display:flex;flex-wrap:wrap;gap:8px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--rule)}
+.search{display:flex;gap:8px;padding:8px 16px 6px}
+.search input{flex:1;min-width:0;padding:11px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--card);font-size:16px}
+.search input:focus{outline:2px solid var(--ledger);outline-offset:1px}
+.tabs{display:flex;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:8px 2px 10px;margin-right:18px;background:none;border:0;border-bottom:3px solid transparent;color:var(--ink-2);font-weight:600;font-size:14px;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-color:var(--ledger)}
+.tab b{font-weight:600;color:var(--ink-3);margin-left:4px}
+.filters{display:flex;gap:8px;padding:6px 16px 8px;overflow-x:auto;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters select{flex:0 0 auto;min-width:104px;max-width:44vw;padding:6px 10px;border:1px solid var(--rule);border-radius:999px;background:var(--card);font-size:13px;color:var(--ink-2)}
+.chip{flex:0 0 auto;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;background:var(--card);font-size:13px;color:var(--ink-2);white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip b{font-weight:600;margin-left:3px;opacity:.75}
+.intro{margin:12px 16px 4px;padding:10px 12px;border-left:3px solid var(--gold);background:var(--card);border-radius:0 8px 8px 0;font-size:14px;color:var(--ink-2)}
+.intro.office{border-color:var(--office)}
+.intro.grey{border-color:var(--ink-3)}
+.intro strong{color:var(--ink)}
+.intro p{margin:0}
+.intro p+p{margin-top:6px}
+
+main{padding:4px 0 120px}
+.book{margin:14px 12px 0;background:var(--card);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.bookhead{display:grid;grid-template-columns:78px minmax(0,1fr);align-items:stretch;border-bottom:1px solid var(--rule)}
+.spine{background:var(--ledger);color:var(--ledger-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 6px;line-height:1;text-align:center}
+.spine.office{background:var(--office)}
+.spine small{font-size:10px;letter-spacing:.04em;opacity:.85;margin-bottom:4px}
+.spine small+small{margin:4px 0 0}
+.spine b{font-size:24px;font-weight:700;letter-spacing:-.02em;word-break:break-word}
+.spine b.sm{font-size:15px;line-height:1.15}
+.spine b.yr{font-size:19px;word-break:normal}
+.bookmeta{padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0}
+.bookmeta .bt{font-weight:600;font-size:15px}
+.bookmeta .cnt{font-size:13px;color:var(--ink-2)}
+.bookmeta .by{font-size:13px;color:var(--ledger);font-weight:600}
+
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:0 8px;padding:10px 12px 10px 10px;border-bottom:1px solid var(--rule);align-items:start}
+.row:last-child{border-bottom:0}
+.row.hit{box-shadow:inset 4px 0 0 var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.row.done{opacity:.55}
+.row.done .pg,.row.done .main .dt{text-decoration:line-through;text-decoration-color:var(--ink-3)}
+.row.flag{background:color-mix(in srgb,var(--warn) 8%,transparent)}
+.chk{width:30px;height:30px;border:2px solid var(--ink-3);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center;margin-top:2px;padding:0}
+.chk[aria-checked="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.chk svg{width:18px;height:18px;opacity:0}
+.chk[aria-checked="true"] svg{opacity:1}
+.nochk{width:30px}
+.pg{font-size:19px;font-weight:700;line-height:1.1;text-align:right}
+.pg small{display:block;font-size:11px;font-weight:500;color:var(--ink-3);margin-top:2px;white-space:nowrap}
+.main{min-width:0}
+.main .dt{font-weight:600;font-size:15px}
+.main .dt em{font-style:normal;font-weight:500;color:var(--ink-2)}
+.main .lg{font-size:14px;color:var(--ink-2)}
+.main .parties{font-size:13px;color:var(--ink-2)}
+.main .parties span+span::before{content:" → ";color:var(--ink-3)}
+.main .fa{font-size:12px;color:var(--ink-3);margin-top:3px;word-break:break-word}
+.main .fa b{font-weight:600;color:var(--ink-2)}
+.main .note{margin-top:6px;font-size:13px;padding:6px 8px;border-radius:6px;background:color-mix(in srgb,var(--gold) 26%,transparent);color:var(--ink)}
+.main .mine{margin-top:6px;font-size:13px;padding:6px 8px;border-radius:6px;background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ink)}
+.main .mine.flag{background:color-mix(in srgb,var(--warn) 18%,transparent)}
+.side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.pill{font-size:11px;font-weight:600;padding:3px 7px;border-radius:999px;background:var(--slate);color:var(--ink-2);white-space:nowrap}
+.pill.agent{background:var(--warn);color:#fff}
+.pill.check{background:var(--office);color:#fff}
+.more{background:none;border:0;color:var(--ink-3);font-size:12px;padding:2px 0;text-decoration:underline}
+.rowmenu{grid-column:2/4;margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rowmenu label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--ink-2);min-width:0}
+.rowmenu input{padding:8px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);font-size:16px;min-width:0;width:100%}
+.rowmenu .acts{grid-column:1/3;display:flex;flex-wrap:wrap;gap:8px}
+.rowmenu button{padding:7px 11px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);font-size:13px}
+.rowmenu button.warn{border-color:var(--warn);color:var(--warn)}
+.empty{margin:40px 24px;text-align:center;color:var(--ink-2);font-size:15px}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:6px}
+.more-rows{margin:16px 12px;padding:12px;border:1px dashed var(--rule);border-radius:10px;background:none;width:calc(100% - 24px);color:var(--ink-2);font-weight:600}
+.scan{font-size:12px;color:var(--ink-2);margin-top:3px;word-break:break-all}
+
+.fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 18px);padding:14px 18px;border:0;border-radius:999px;background:var(--ink);color:var(--paper);font-weight:700;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:6}
+[hidden]{display:none!important}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;z-index:20}
+.panel{background:var(--card);width:100%;max-width:760px;margin:0 auto;border-radius:16px 16px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);max-height:88vh;overflow:auto}
+.panel h2{margin:0 0 4px;font-size:18px}
+.panel p{margin:0 0 12px;color:var(--ink-2);font-size:14px}
+.panel textarea{width:100%;min-height:220px;padding:10px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);color:var(--ink);font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:12px}
+.btn{padding:11px 16px;border-radius:10px;border:1px solid var(--rule);background:var(--paper);font-weight:600}
+.btn.primary{background:var(--ledger);border-color:var(--ledger);color:var(--ledger-ink)}
+.btn.warn{border-color:var(--warn);color:var(--warn)}
+.foot{margin:28px 16px 0;font-size:12px;color:var(--ink-3);line-height:1.5}
+.foot button{background:none;border:0;padding:0;color:var(--ledger);font-weight:600;text-decoration:underline;font-size:12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);background:var(--ink);color:var(--paper);padding:10px 14px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;max-width:90vw}
+.toast.show{opacity:1}
+@media (max-width:420px){ .sums{grid-template-columns:repeat(2,minmax(0,1fr))} .bookhead{grid-template-columns:66px minmax(0,1fr)} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+:focus-visible{outline:2px solid var(--ledger);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="masthead">
+    <h1>Big River — still to pull<small>Des Moines County Recorder, Burlington · status as of <span id="asof"></span> · ticks stay on this phone</small></h1>
+  </div>
+  <div class="sums" id="sums"></div>
+  <div class="who">
+    <h2>Who's pulling?</h2>
+    <div class="whochips" id="whochips"></div>
+  </div>
+</div>
+<div class="top">
+  <div class="wrap">
+    <div class="search"><input id="q" type="search" placeholder="Book-page, transfer page, name, file, section, #52…" autocomplete="off" aria-label="Search the list"></div>
+    <div class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" data-tab="ready" aria-selected="true">Ready to pull<b id="n-ready"></b></button>
+      <button class="tab" role="tab" data-tab="colin" aria-selected="false">Index lookups<b id="n-colin"></b></button>
+      <button class="tab" role="tab" data-tab="office" aria-selected="false">Office / online<b id="n-office"></b></button>
+      <button class="tab" role="tab" data-tab="done" aria-selected="false">Scanned, not filed<b id="n-done"></b></button>
+    </div>
+    <div class="filters" id="filters">
+      <select id="fa" aria-label="FA file"><option value="">All files</option></select>
+      <select id="sec" aria-label="Section"><option value="">All sections</option></select>
+      <button class="chip" data-f="todo" aria-pressed="true">To do</button>
+      <button class="chip" data-f="ticked" aria-pressed="false">Ticked here<b id="n-ticked"></b></button>
+      <button class="chip" data-f="agent" aria-pressed="false">Agent waiting</button>
+      <button class="chip" data-f="all" aria-pressed="false">Everything</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="intro"></div>
+  <main id="list"></main>
+  <p class="foot">Today's pull sheets (in SharePoint under Shared, Pull lists), as of <span id="asof2"></span>. Ticks, flags and the deed book-pages you type stay on this phone until you copy them out; the scans in SharePoint are still the record. <button id="clear">Clear what's saved on this phone</button></p>
+</div>
+
+<button class="fab" id="fab">Copy my pulls</button>
+
+<div class="sheet" id="outsheet" hidden>
+  <div class="panel" role="dialog" aria-labelledby="out-h">
+    <h2 id="out-h">Your pulls</h2>
+    <p>Copy this and paste it into a text or email to Jon at the end of the day.</p>
+    <textarea id="outtext" readonly></textarea>
+    <div class="actions"><button class="btn" id="outclose">Close</button><button class="btn primary" id="outcopy">Copy</button></div>
+  </div>
+</div>
+<div class="sheet" id="clearsheet" hidden>
+  <div class="panel" role="dialog" aria-labelledby="clr-h">
+    <h2 id="clr-h">Clear this phone?</h2>
+    <p>This removes every tick, flag and note saved on this phone. Copy your pulls first if you haven't sent them.</p>
+    <div class="actions"><button class="btn" id="clrno">Keep them</button><button class="btn warn" id="clryes">Clear</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script id="seed" type="application/json">__SEED__</script>
+<script>
+(() => {
+const SEED = JSON.parse(document.getElementById('seed').textContent);
+const ROWS = SEED.rows, DONE = SEED.done, RECHECK = SEED.recheck, META = SEED.meta;
+const PEOPLE = [['', 'Everyone'], ['kaylene', 'Kaylene'], ['laney', 'Laney'], ['stephanie', 'Stephanie'], ['colin', 'Colin']];
+const HASHES = {stephanie: ['ready', 'stephanie'], kaylene: ['ready', 'kaylene'], laney: ['ready', 'laney'], everyone: ['ready', ''], colin: ['colin', 'colin'], lookups: ['colin', ''], office: ['office', ''], scanned: ['done', '']};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS = { get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
+
+let marks = LS.get('br.pl2.marks', {});
+let who = LS.get('br.pl2.who', '');
+let tab = 'ready', query = '', filter = 'todo', fa = '', sec = '', openMenu = null, hit = null, limit = 60;
+const whoName = () => (PEOPLE.find(p => p[0] === who) || PEOPLE[0])[1];
+
+// ---------- helpers ----------
+const numish = s => { const n = parseFloat(String(s ?? '').replace(/[^0-9.]/g, '')); return isNaN(n) ? Infinity : n; };
+const strip0 = v => String(v ?? '').replace(/^0+(?=\d)/, '');
+const tabOf = r => r.t;
+const mark = r => marks[r.k];
+const ticked = r => !!marks[r.k];
+function personOk(r){
+  if (!who || r.t === 'office') return true;
+  if (who === 'colin') return r.t === 'colin' ? !r.who : true;
+  return (r.who || '').toLowerCase() === who;
+}
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2200); }
+function shortDate(d){
+  const m = String(d || '').match(/^(\d{4})-(\d\d)-(\d\d)$/);
+  if (!m) return d || '';
+  return `${+m[2]}/${+m[3]}/${m[1]}`;
+}
+
+function parseCite(q){
+  let m = q.match(/^\s*#\s*(\d{1,3})\s*$/);
+  if (m) return {n: +m[1]};
+  m = q.match(/^\s*((?:18|19)\d\d-(?:18|19)\d\d)\s*(?:p(?:g|age)?\.?\s*(\d{1,4}))?\s*$/i);
+  if (m) return {tv: m[1], tp: m[2] ? strip0(m[2]) : null};
+  m = q.match(/^\s*(?:bk|book)?\s*(\d{1,3})\s*(?:-|\/|\s|,|\s*p(?:g|age)?\.?\s*)\s*(\d{1,4})\s*$/i);
+  if (m) return {b: strip0(m[1]), p: strip0(m[2])};
+  return null;
+}
+function matches(r){
+  if (!query) return true;
+  const c = parseCite(query);
+  if (c){
+    if (c.n != null) return (r.w2 || '').endsWith('#' + c.n);
+    if (c.tv) return r.tv === c.tv && (c.tp === null || strip0(r.tp) === c.tp);
+    if (strip0(r.b) === c.b && strip0(r.p) === c.p) return true;
+    const mk = mark(r); if (mk && mk.bp && mk.bp.replace(/\s+/g, '').replace('/', '-') === `${c.b}-${c.p}`) return true;
+    if (r.tp && strip0(r.tp) === c.p && r.tv && r.tv.startsWith(c.b)) return true;
+  }
+  const q = query.toLowerCase();
+  const fileHit = /^(file\s*)?\d{2}$/.test(q) && (r.fa || []).includes(q.replace(/\D/g, ''));
+  return fileHit || [r.cit, r.b && `${r.b}-${r.p}`, r.tv && `${r.tv} p${r.tp}`, r.dt, r.lg, r.gr, r.ge, r.d, shortDate(r.d), (r.sec || []).join(' '), r.nt, r.who, r.w2, r.q, r.g].some(v => String(v || '').toLowerCase().includes(q));
+}
+function inFilter(r){
+  if (filter === 'all') return true;
+  if (filter === 'ticked') return ticked(r);
+  if (filter === 'agent') return !!r.ag && !ticked(r);
+  return !ticked(r);
+}
+function inSelects(r){
+  if (fa && !(r.fa || []).includes(fa)) return false;
+  if (sec && !(r.sec || []).includes(sec)) return false;
+  return true;
+}
+function groupKey(r){ return r.t + '|' + r.g; }
+function groupRank(r){
+  if (r.t === 'ready') return [r.pre ? 1 : 0, numish(r.b), 0];
+  if (r.t === 'colin'){
+    if (/^L /.test(r.g)) return [0, numish(r.g.slice(2)), 0];
+    if (r.tv && r.g.startsWith('T ')) return [0, numish(r.tv), numish(r.tp)];
+    return [/legible/.test(r.g) ? 1 : /Probate/.test(r.g) ? 3 : /Not in the grantor/.test(r.g) ? 4 : 2, 0, 0];
+  }
+  const o = ['Iowa Land Records: pull online', 'Iowa Land Records: someone to check', 'FamilySearch film (remote)', 'Land patents (BLM GLO website)'];
+  return [o.indexOf(r.g) < 0 ? 9 : o.indexOf(r.g), 0, 0];
+}
+function cmpRank(a, b){ for (let i = 0; i < 3; i++){ if (a[i] !== b[i]) return a[i] - b[i]; } return 0; }
+function sortRows(a, b){
+  if (a.tv) return String(a.d).localeCompare(String(b.d));
+  if (a.b && b.b) return numish(a.p) - numish(b.p);
+  if (a.t === 'office') return (numish((a.fa || [])[0]) - numish((b.fa || [])[0])) || String(a.d).localeCompare(String(b.d));
+  return String(a.d).localeCompare(String(b.d));
+}
+
+// ---------- fixed parts ----------
+function fillStatic(){
+  $('#asof').textContent = META.asof; $('#asof2').textContent = META.asof;
+  const c = META.counts;
+  $('#sums').innerHTML = `<div><b>${c.ready || 0}</b>ready to pull: clear book and page</div><div><b>${c.lookup || 0}</b>imagers look up in the grantor index</div><div><b>${c.colin || 0}</b>for Colin: probate, name searches, not found</div><div><b>${c.office || 0}</b>office or online</div>`;
+  const fs = $('#fa'), files = new Map(), secs = new Map();
+  for (const r of ROWS){ for (const f of (r.fa || [])) files.set(f, (files.get(f) || 0) + 1); for (const s of (r.sec || [])) secs.set(s, (secs.get(s) || 0) + 1); }
+  [...files.keys()].sort((a, b) => numish(a) - numish(b)).forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = `File ${f}${META.agent.includes(f) ? ' · agent' : ''} (${files.get(f)})`; fs.appendChild(o); });
+  const ss = $('#sec');
+  [...secs.keys()].sort().forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = `Section ${s} (${secs.get(s)})`; ss.appendChild(o); });
+}
+function renderWho(){
+  $('#whochips').innerHTML = PEOPLE.map(([id, name]) => {
+    const n = id ? ROWS.filter(r => (id === 'colin' ? r.t === 'colin' && !r.who : r.t !== 'office' && (r.who || '').toLowerCase() === id) && !ticked(r)).length : 0;
+    return `<button class="chip" data-who="${id}" aria-pressed="${who === id}">${esc(name)}${id ? `<b>${n}</b>` : ''}</button>`;
+  }).join('');
+}
+
+// ---------- render ----------
+const INTRO = {
+  ready: () => {
+    const R = META.ranges, by = META.readyBy || {};
+    const mine = {kaylene: 'Kaylene', laney: 'Laney', stephanie: 'Stephanie'}[who];
+    const split = mine ? `${mine} has deed books ${R[mine]} (${by[mine] || 0} rows).` : who === 'colin' ? `These are the imagers' rows: Kaylene books ${R.Kaylene}, Laney ${R.Laney}, Stephanie ${R.Stephanie}.` : `Kaylene has deed books ${R.Kaylene}, Laney ${R.Laney} and Stephanie ${R.Stephanie}. Tap your name above.`;
+    return `<div class="intro"><p><strong>Every row here has a clear deed book and page.</strong> ${split} Rows marked “From index” got their book and page from the grantor index, so check the grantor and date on the deed. Rows marked “New” were added at midday. Pull the book, go to the page, and copy the whole instrument with all its pages. Name the scan with the book, page and type, like <strong>0131-0363 WD</strong>, then tick the row.</p><p>Finished your books? Open <strong>Index lookups</strong> and look up your date range in the grantor index. Can't find a deed in about 10 minutes? Tap “more”, mark it “Can't find it” and move on.</p></div>`;
+  },
+  colin: () => {
+    const mine = {kaylene: 'Kaylene', laney: 'Laney', stephanie: 'Stephanie'}[who];
+    const L = META.lookups;
+    if (mine) return `<div class="intro"><p><strong>${mine}: after your pull list, look these up in the grantor deed index (Lands).</strong> Yours are the Transfer of Lands entries filed ${L[mine]}. The transfer book gives the section but no deed book, so find the grantor in the grantor index around the filing date and read the “Where Recorded” book and page.</p><p>Type the book-page under “more”. If it is easy to reach, pull the deed and tick it. Town-lot deeds (Yarmouth and other lots) are in the separate “Deed Index - Lots” books, not the Lands index. Copy your list at the end of the day and send it to Jon.</p></div>`;
+    if (who === 'colin') return `<div class="intro"><p><strong>Colin: the rows the index lookups can't settle.</strong> Probate files (the deed index has no entry, so the estate or change of title is in the clerk's probate records), rows to search by name, and deeds the grantor index didn't show. Files with an agent waiting come first.</p><p>Type what you find under “more”, then copy your list at the end of the day and send it to Jon. The imagers' Transfer of Lands lookups are under their names.</p></div>`;
+    return `<div class="intro"><p><strong>These need a deed book and page from the grantor index.</strong> The imagers look up Transfer of Lands entries by filing date: Kaylene ${L.Kaylene}, Laney ${L.Laney}, Stephanie ${L.Stephanie}. Colin has the probate files, name searches and deeds the index didn't show. Tap your name above to see only yours.</p></div>`;
+  },
+  office: () => `<div class="intro office"><p><strong>Office work, not for the vault.</strong> These are done online: Iowa Land Records for 1968 on, FamilySearch film, and land patents from the BLM General Land Office website. They are here so the counts add up.</p></div>`,
+  done: () => `<div class="intro grey"><p><strong>Already scanned, not filed yet. Skip these.</strong> These deeds came up on today's lists but the crew already has a scan, so they are off the pull list. Below them are scans whose names look wrong; check the book and page written on each before it is filed.</p></div>`
+};
+function render(){
+  renderWho();
+  const vis = r => personOk(r) && inSelects(r) && matches(r);
+  const cnt = {ready:0, colin:0, office:0};
+  for (const r of ROWS) if (vis(r) && !ticked(r)) cnt[tabOf(r)]++;
+  for (const k in cnt){ const el = $(`#n-${k}`); if (el) el.textContent = cnt[k] || ''; }
+  $('#n-done').textContent = DONE.length;
+  const nt = Object.keys(marks).length;
+  $('#n-ticked').textContent = nt ? nt : '';
+  $('#fab').textContent = nt ? `Copy my pulls (${nt})` : 'Copy my pulls';
+  $('#filters').hidden = tab === 'done';
+  $('#intro').innerHTML = INTRO[tab]();
+  const list = $('#list');
+  if (tab === 'done') return renderDone(list);
+
+  const rows = ROWS.filter(r => tabOf(r) === tab && vis(r) && inFilter(r)).sort(sortRows);
+  if (!rows.length){
+    list.innerHTML = `<div class="empty"><b>Nothing here</b>${query ? 'No rows match “' + esc(query) + '”. Try just the book number or a surname.' : filter === 'ticked' ? 'You haven’t ticked anything in this tab on this phone.' : 'Every row in this view is ticked.'}</div>`;
+    return;
+  }
+  const groups = new Map();
+  for (const r of rows){ const k = groupKey(r); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
+  let order = [...groups.keys()];
+  const agentFirst = (a, b) => tab === 'colin' && who === 'colin' ? (groups.get(b).some(r => r.ag) - groups.get(a).some(r => r.ag)) : 0;
+  order.sort((a, b) => agentFirst(a, b) || cmpRank(groupRank(groups.get(a)[0]), groupRank(groups.get(b)[0])));
+  let html = '', shown = 0;
+  for (const k of order){
+    if (shown >= limit) break;
+    const rs = groups.get(k), r0 = rs[0];
+    const owners = [...new Set(rs.map(r => r.who).filter(Boolean))];
+    const left = rs.filter(r => !ticked(r)).length;
+    const agentN = rs.filter(r => r.ag).length;
+    html += `<section class="book"><div class="bookhead"><div class="spine${r0.t === 'office' ? ' office' : ''}">${spineHTML(r0)}</div><div class="bookmeta"><div class="bt">${esc(groupTitle(r0))}</div><div class="cnt">${rs.length} row${rs.length === 1 ? '' : 's'} · ${left} to do${secLine(rs)}${tab === 'colin' && agentN ? ` · ${agentN} agent waiting` : ''}</div>${owners.length ? `<div class="by">${esc(owners.join(', '))}</div>` : ''}</div></div>`;
+    for (const r of rs) html += rowHTML(r);
+    html += '</section>';
+    shown += rs.length;
+  }
+  if (shown < rows.length) html += `<button class="more-rows" id="morerows">Show more (${rows.length - shown} rows left)</button>`;
+  list.innerHTML = html;
+  if (hit){ const el = document.getElementById('row-' + hit); if (el) el.scrollIntoView({block: 'center'}); hit = null; }
+}
+function secLine(rs){
+  const s = [...new Set(rs.flatMap(r => r.sec || []))];
+  return s.length && s.length <= 3 ? ` · Section ${s.join(', ')}` : '';
+}
+function spineHTML(r){
+  if (/^L /.test(r.g)) return `<small>filed</small><b class="yr">${esc(r.g.slice(2))}</b><small>Transfer of Lands</small>`;
+  if (r.tv && /^T /.test(r.g)) return `<small>transfer page</small><b>${esc(r.tp)}</b><small>${esc(r.tv.replace('-', '–'))}</small>`;
+  if (r.t === 'ready') return `<small>deed book</small><b>${esc(r.b)}</b>${r.pre ? '<small>before 1904</small>' : ''}`;
+  if (r.t === 'colin') return /legible/.test(r.g) ? `<small>book-page</small><b class="sm">Hard to read</b>` : /Probate/.test(r.g) ? `<small>clerk</small><b class="sm">Probate</b>` : `<small>grantor</small><b class="sm">Index</b>`;
+  return `<b class="sm">${/patent/i.test(r.g) ? 'BLM GLO' : /FamilySearch/.test(r.g) ? 'Family­Search' : 'ILR'}</b>`;
+}
+function groupTitle(r){
+  if (/^L /.test(r.g)) return `Index lookups: filed in ${r.g.slice(2)}`;
+  if (r.tv && /^T /.test(r.g)) return `Transfer of Lands ${r.tv.replace('-', '–')}, page ${r.tp}`;
+  if (r.t === 'ready') return `Deed book ${r.b}`;
+  return r.g;
+}
+function pgHTML(r){
+  if (/^L /.test(r.g)) return `<div class="pg">p. ${esc(r.tp)}<small>Transfer ${esc(r.tv.replace('-', '–'))}</small></div>`;
+  if (r.tv) return r.est ? `<div class="pg"><small>likely Bk</small>${esc(r.est.replace('-', '–'))}<small>estimate</small></div>` : `<div class="pg"><small>book not known</small></div>`;
+  if (r.t === 'ready') return `<div class="pg">p. ${esc(r.p)}<small>Bk ${esc(r.b)}${r.all ? (r.all.length > 1 ? ` + ${r.all.length - 1} more` : ' + next pages') : ''}</small></div>`;
+  if (r.cit) return `<div class="pg"><small>${esc(r.cit)}</small></div>`;
+  return `<div class="pg"><small>${r.d ? esc(r.d.slice(0, 4)) : 'no date'}</small></div>`;
+}
+function rowHTML(r){
+  const mk = mark(r), crew = r.t !== 'office';
+  const cls = ['row', mk && mk.s === 'pulled' ? 'done' : '', mk && mk.s === 'flag' ? 'flag' : '', hit === r.k ? 'hit' : ''].filter(Boolean).join(' ');
+  const pills = [];
+  if (r.ag) pills.push('<span class="pill agent">Agent waiting</span>');
+  if (r.chk) pills.push('<span class="pill check">Check</span>');
+  if (r.new) pills.push('<span class="pill check">New</span>');
+  if (r.src === 'index') pills.push('<span class="pill">From index</span>');
+  if (r.who && !who) pills.push(`<span class="pill">${esc(r.who)}</span>`);
+  const parties = (r.gr || r.ge) ? `<div class="parties">${r.gr ? `<span>${esc(r.gr)}</span>` : ''}${r.ge ? `<span>${esc(r.ge)}</span>` : ''}</div>` : '';
+  const fas = (r.fa || []).map(f => `<b>File ${esc(f)}</b>`).join(', ');
+  const secs = (r.sec || []).length ? ` · Section ${esc(r.sec.join(', '))}` : '';
+  const mine = mk ? `<div class="mine${mk.s === 'flag' ? ' flag' : ''}">${mk.s === 'flag' ? 'Flagged: couldn’t find it' : 'Pulled'}${mk.bp ? ' · deed ' + esc(mk.bp) : ''}${mk.nt ? ' · ' + esc(mk.nt) : ''}</div>` : '';
+  const menu = openMenu === r.k ? `<div class="rowmenu">
+      <label for="bp-${esc(r.k)}">Deed book-page you found<input id="bp-${esc(r.k)}" data-bp="${esc(r.k)}" value="${esc(mk && mk.bp || '')}" placeholder="131-363" inputmode="numeric" autocomplete="off"></label>
+      <label for="nt-${esc(r.k)}">Note<input id="nt-${esc(r.k)}" data-nt="${esc(r.k)}" value="${esc(mk && mk.nt || '')}" placeholder="partial, wrong page…" autocomplete="off"></label>
+      <div class="acts"><button data-act="pulled" data-k="${esc(r.k)}">${mk && mk.s === 'pulled' ? 'Untick' : 'Mark pulled'}</button><button class="warn" data-act="flag" data-k="${esc(r.k)}">${mk && mk.s === 'flag' ? 'Clear flag' : 'Can’t find it'}</button></div>
+    </div>` : '';
+  const chk = crew ? `<button class="chk" role="checkbox" aria-checked="${!!(mk && mk.s === 'pulled')}" aria-label="Mark pulled" data-tick="${esc(r.k)}"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg></button>` : '<span class="nochk"></span>';
+  return `<div class="${cls}" id="row-${esc(r.k)}">
+    ${chk}
+    <div class="main">
+      <div class="dt">${esc(r.dt) || 'Instrument'}${r.d ? ` <em>· ${esc(shortDate(r.d))}</em>` : ''}</div>
+      ${r.lg ? `<div class="lg">${esc(r.lg)}</div>` : ''}
+      ${parties}
+      <div class="fa">${fas}${secs}${r.w2 ? ` · was ${esc(r.w2)} on Wave 2` : ''}</div>
+      ${r.all ? `<div class="mine">Pull all of these: ${esc(r.all.join(' · '))}</div>` : ''}
+      ${r.dup ? `<div class="note">${r.dupx ? `Another row with a different deed also shows ${esc(r.dup.split(', ').map(v => 'Bk ' + v.replace('-', ' p. ')).join(' and '))} in the index. One of them is probably on the next page, so check the parties and look a page or two either side.` : `Another row here also needs ${esc(r.dup.split(', ').map(v => 'Bk ' + v.replace('-', ' p. ')).join(' and '))}. Pull it once and tick both rows.`}</div>` : ''}
+      ${r.nt ? `<div class="note">${esc(r.nt)}</div>` : ''}
+      ${mine}
+    </div>
+    <div class="side">${pgHTML(r)}${pills.join('')}${crew ? `<button class="more" data-menu="${esc(r.k)}">${openMenu === r.k ? 'close' : 'more'}</button>` : ''}</div>
+    ${menu}
+  </div>`;
+}
+function renderDone(list){
+  const ql = query.toLowerCase();
+  const rs = DONE.filter(d => !query || [d.gr, d.ge, d.scan, d.bp, d.dt, (d.fa || []).join(' ')].some(v => String(v || '').toLowerCase().includes(ql)));
+  let html = '';
+  if (rs.length){
+    html += `<section class="book"><div class="bookhead"><div class="spine"><small>already</small><b class="sm">Scanned</b></div><div class="bookmeta"><div class="bt">Scanned, not filed yet · skip these</div><div class="cnt">${rs.length} deed${rs.length === 1 ? '' : 's'}</div></div></div>`;
+    for (const d of rs.slice().sort((a, b) => numish(a.bp) - numish(b.bp) || numish(a.bp.split('-')[1]) - numish(b.bp.split('-')[1]))) html += `<div class="row"><span class="nochk"></span><div class="main"><div class="dt">${esc(d.dt)}${d.d ? ` <em>· ${esc(shortDate(d.d))}</em>` : ''}</div><div class="parties">${d.gr ? `<span>${esc(d.gr)}</span>` : ''}${d.ge ? `<span>${esc(d.ge)}</span>` : ''}</div><div class="fa">${(d.fa || []).map(f => `<b>File ${esc(f)}</b>`).join(', ')}</div><div class="scan">Scan: ${esc(d.scan)}</div></div><div class="side"><div class="pg">${esc(d.bp.split('-')[1] ? 'p. ' + d.bp.split('-')[1] : d.bp)}<small>Bk ${esc(d.bp.split('-')[0])}</small></div></div></div>`;
+    html += '</section>';
+  }
+  const rc = RECHECK.filter(x => !query || [x.scan, x.what, x.why].some(v => v.toLowerCase().includes(query.toLowerCase())));
+  if (rc.length){
+    html += `<section class="book"><div class="bookhead"><div class="spine office"><small>scans to</small><b class="sm">Re-check</b></div><div class="bookmeta"><div class="bt">Scans whose names look wrong</div><div class="cnt">${rc.length} scans · check the book and page written on each</div></div></div>`;
+    for (const x of rc) html += `<div class="row"><span class="nochk"></span><div class="main"><div class="dt">${esc(x.what)}</div><div class="lg">${esc(x.why)}</div><div class="scan">${esc(x.scan)}</div></div><div class="side"></div></div>`;
+    html += '</section>';
+  }
+  list.innerHTML = html || `<div class="empty"><b>Nothing here</b>No scans match “${esc(query)}”.</div>`;
+}
+
+// ---------- marks (this phone only) ----------
+function saveMarks(){ LS.set('br.pl2.marks', marks); }
+function setMark(k, patch){
+  const cur = marks[k] || {};
+  const next = {...cur, ...patch, at: new Date().toISOString()};
+  if (!next.s) delete marks[k]; else marks[k] = next;
+  saveMarks();
+}
+function act(k, what){
+  const mk = marks[k];
+  if (what === 'tick' || what === 'pulled'){ if (mk && mk.s === 'pulled') setMark(k, {s: ''}); else setMark(k, {s: 'pulled'}); }
+  else if (what === 'flag'){ if (mk && mk.s === 'flag') setMark(k, {s: ''}); else setMark(k, {s: 'flag'}); }
+  if (what !== 'tick') openMenu = null;
+  render();
+}
+function outText(){
+  const byK = new Map(ROWS.map(r => [r.k, r]));
+  const items = Object.entries(marks).map(([k, m]) => ({r: byK.get(k), m})).filter(x => x.r).sort((a, b) => cmpRank(groupRank(a.r), groupRank(b.r)) || String(a.m.at).localeCompare(String(b.m.at)));
+  const line = ({r, m}) => [r.tv ? `Transfer ${r.tv} p${r.tp}` : r.all ? r.all.join('; ') : (r.b ? `Bk ${r.b} p${r.p}` : (r.cit || '')), shortDate(r.d), r.dt, [r.gr, r.ge].filter(Boolean).join(' to '), (r.fa || []).length ? 'File ' + r.fa.join(', ') : '', r.w2 ? 'Wave 2 ' + r.w2 : '', m.bp ? 'deed book-page ' + m.bp : '', m.nt || ''].filter(Boolean).join(' | ');
+  const pulled = items.filter(x => x.m.s === 'pulled'), flagged = items.filter(x => x.m.s === 'flag');
+  const name = who ? whoName() : '';
+  let t = `Big River pulls${name ? ' – ' + name : ''} – ${new Date().toLocaleDateString()}\n`;
+  t += `\nPulled (${pulled.length}):\n` + (pulled.map(line).join('\n') || '(none)');
+  if (flagged.length) t += `\n\nCouldn't find (${flagged.length}):\n` + flagged.map(line).join('\n');
+  return t;
+}
+function copyText(text){
+  const ta = $('#outtext');
+  const fallback = () => { ta.focus(); ta.select(); try { document.execCommand('copy'); toast('Copied'); } catch(e){ toast('Select the text and copy it'); } };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast('Copied. Paste it into a text or email to Jon.'), fallback);
+  else fallback();
+}
+
+// ---------- routing: #laney, #stephanie, #kaylene, #colin, #nobody ----------
+function setTab(t){ tab = t; document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === t)); }
+function fromHash(){
+  const h = HASHES[(location.hash || '').slice(1).toLowerCase()];
+  if (h){ setTab(h[0]); who = h[1]; LS.set('br.pl2.who', who); }
+  else if (who === 'colin') setTab('colin');
+}
+function setWho(id){
+  who = id; LS.set('br.pl2.who', who); limit = 60; openMenu = null;
+  if (id === 'colin') setTab('colin'); else if (tab === 'colin' || id) setTab('ready');
+  try { history.replaceState(null, '', id ? '#' + id : location.pathname + location.search); } catch(e){ location.hash = id; }
+  render(); window.scrollTo({top: 0});
+}
+
+// ---------- events ----------
+$('#q').addEventListener('input', e => { query = e.target.value.trim(); limit = 60; render(); });
+$('#whochips').addEventListener('click', e => { const b = e.target.closest('[data-who]'); if (b) setWho(b.dataset.who); });
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (!b) return; tab = b.dataset.tab; limit = 60; document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t === b)); openMenu = null; render(); window.scrollTo({top: 0}); });
+$('#filters').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; filter = b.dataset.f; limit = 60; document.querySelectorAll('#filters .chip').forEach(c => c.setAttribute('aria-pressed', c === b)); render(); });
+$('#fa').addEventListener('change', e => { fa = e.target.value; limit = 60; render(); });
+$('#sec').addEventListener('change', e => { sec = e.target.value; limit = 60; render(); });
+$('#list').addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.id === 'morerows'){ limit += 120; return render(); }
+  if (t.dataset.tick) return act(t.dataset.tick, 'tick');
+  if (t.dataset.menu){ openMenu = openMenu === t.dataset.menu ? null : t.dataset.menu; render(); const i = document.getElementById('bp-' + t.dataset.menu); if (i) i.focus(); return; }
+  if (t.dataset.act) return act(t.dataset.k, t.dataset.act);
+});
+$('#list').addEventListener('change', e => {
+  const i = e.target; const k = i.dataset.bp || i.dataset.nt; if (!k) return;
+  const cur = marks[k] || {};
+  const patch = i.dataset.bp ? {bp: i.value.trim()} : {nt: i.value.trim()};
+  if (!cur.s && (patch.bp || patch.nt)) patch.s = 'pulled';
+  setMark(k, {s: cur.s || patch.s || '', ...patch});
+  toast(patch.s ? 'Saved and ticked' : 'Saved on this phone');
+  render();
+});
+$('#fab').addEventListener('click', () => { $('#outtext').value = outText(); $('#outsheet').hidden = false; });
+$('#outclose').addEventListener('click', () => { $('#outsheet').hidden = true; });
+$('#outcopy').addEventListener('click', () => copyText($('#outtext').value));
+$('#outsheet').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.hidden = true; });
+$('#clear').addEventListener('click', () => { $('#clearsheet').hidden = false; });
+$('#clrno').addEventListener('click', () => { $('#clearsheet').hidden = true; });
+$('#clryes').addEventListener('click', () => { marks = {}; saveMarks(); $('#clearsheet').hidden = true; render(); toast('Cleared this phone'); });
+$('#clearsheet').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.hidden = true; });
+window.addEventListener('hashchange', () => { fromHash(); render(); });
+
+fillStatic();
+fromHash();
+render();
+})();
+</script>
+</body>
+</html>
